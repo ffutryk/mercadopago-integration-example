@@ -33,4 +33,27 @@ export class MercadoPagoService {
 
     return sha === hash;
   }
+
+  async handleEvent(event) {
+    switch (event.action) {
+      case 'payment.created':
+        await this.handlePaymentCreated(event);
+        break;
+      case 'payment.updated':
+        await this.handlePaymentUpdated(event);
+        break;
+      default:
+        console.warn(`Unhandled MercadoPago event: ${event.action}`);
+    }
+  }
+
+  async handlePaymentCreated(data) {
+    // Business logic for when a payment is created
+    console.log(data);
+  }
+
+  async handlePaymentUpdated(data) {
+    // Business logic for when a payment is updated
+    console.log(data);
+  }
 }

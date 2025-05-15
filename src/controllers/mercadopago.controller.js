@@ -5,6 +5,10 @@ export class MercadoPagoController {
 
   async handleWebhook(req, res, next) {
     try {
+      const event = req.body;
+
+      await this.mercadoPagoService.handleEvent(event);
+
       return res.sendStatus(200);
     } catch (err) {
       next(err);
