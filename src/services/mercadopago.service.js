@@ -8,9 +8,8 @@ export class MercadoPagoService {
 
     if (!xSignature || !xRequestId) return false;
 
-    const requestUrl = new URL(req.url, `http://${req.headers.host}`);
-    const dataID = requestUrl.searchParams.get('data.id');
-    if (!dataID) return false;
+    const dataId = req.query['data.id'];
+    if (!dataId) return false;
 
     const signatureParts = Object.fromEntries(
       xSignature.split(',').map((part) => {
@@ -24,7 +23,7 @@ export class MercadoPagoService {
 
     if (!ts || !hash) return false;
 
-    const manifest = `id:${dataID};request-id:${xRequestId};ts:${ts};`;
+    const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
 
     const sha = crypto
       .createHmac('sha256', MERCADOPAGO_AUTHENTICITY_SECRET)
