@@ -31,7 +31,12 @@ export class MercadoPagoService {
       .update(manifest)
       .digest('hex');
 
-    return sha === hash;
+    const hashBuffer = Buffer.from(hash, 'hex');
+    const shaBuffer = Buffer.from(sha, 'hex');
+
+    if (hashBuffer.length !== shaBuffer.length) return false;
+
+    return crypto.timingSafeEqual(shaBuffer, hashBuffer);
   }
 
   async handleEvent(event) {
