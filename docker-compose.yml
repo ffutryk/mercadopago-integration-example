@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  example-db:
+    image: postgres:latest
+    container_name: example-db
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${EXAMPLE_DB_NAME}
+      - POSTGRES_USER=${EXAMPLE_DB_USER}
+      - POSTGRES_PASSWORD=${EXAMPLE_DB_PASSWORD}
+    ports:
+      - '5469:5432'
+    networks:
+      - example-network
+    volumes:
+      - example-db-data:/var/lib/postgresql/data
+
+volumes:
+  example-db-data:
+
+networks:
+  example-network:
+    driver: bridge
