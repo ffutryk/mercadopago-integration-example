@@ -24,6 +24,8 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   orders Order[]
+
+  @@map("users")
 }
 
 model Product {
@@ -36,12 +38,13 @@ model Product {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   items OrderItem[]
+
+  @@map("products")
 }
 
 model Order {
   uid          String @id @default(cuid())
   userUid      String
-  preferenceId String
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -49,6 +52,8 @@ model Order {
   user    User        @relation(fields: [userUid], references: [uid])
   items   OrderItem[]
   payment Payment[]
+
+  @@map("orders")
 }
 
 model OrderItem {
