@@ -153,3 +153,14 @@ export class InvalidItemArrayError extends HttpError {
     super(400, messages);
   }
 }
+
+export class ProductNotFoundError extends HttpError {
+  constructor() {
+    const messages = {
+      en: 'Product not found',
+      es: 'El producto no ha sido encontrado',
+    };
+
+    super(404, messages);
+  }
+}
