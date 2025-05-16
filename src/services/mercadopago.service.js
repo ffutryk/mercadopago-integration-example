@@ -5,10 +5,12 @@ import {
 } from '../config/secrets.js';
 import { Preference, Payment } from 'mercadopago';
 import { mercadoPagoClient } from '../config/mercadopago.js';
+import { ProductNotFoundError } from '../errors/errors.js';
 
 export class MercadoPagoService {
-  constructor(orderRepository) {
+  constructor(orderRepository, productRepository) {
     this.orderRepository = orderRepository;
+    this.productRepository = productRepository;
   }
 
   async validateRequestOrigin(req) {
@@ -52,6 +54,8 @@ export class MercadoPagoService {
       case 'payment.created':
         await this.handlePaymentCreated(event.data);
         break;
+      case 'payment.updated':
+        await this.handlePaymentUpdated(event.data);
         break;
       default:
         console.warn(`Unhandled MercadoPago event: ${event.action}`);
@@ -61,29 +65,45 @@ export class MercadoPagoService {
   async handlePaymentCreated(data) {
     const payment = await new Payment(mercadoPagoClient).get({ id: data.id });
 
-    if (payment.status === 'approved') {
-      await this.orderRepository.update(payment.external_reference, {
-        paymentStatus: 'APPROVED',
-      });
-    }
+    // Business logic for when a payment is created
+
+    console.log(payment);
   }
 
-  async createOrder(payer, order) {
+  async handlePaymentUpdated(data) {
+    const payment = await new Payment(mercadoPagoClient).get({ id: data.id });
+
+    // Business logic for when a payment is updated
+
+    console.log(payment);
+  }
+
+  async createOrder(buyer, orderWithItems) {
     const preference = new Preference(mercadoPagoClient);
 
-    const response = await preference.create({
-      body: {
-        items: order.items.map(({ quantity, product }) => ({
+    const items = await Promise.all(
+      orderWithItems.items.map(async ({ uid, quantity }) => {
+        const product = await this.productRepository.findByUid(uid);
+
+        if (!product) throw new ProductNotFoundError();
+
+        return {
           quantity,
           id: product.uid,
           title: product.name,
           description: product.description,
           unit_price: Number(product.unitPrice),
-        })),
+        };
+      })
+    );
+
+    const response = await preference.create({
+      body: {
+        items,
         payer: {
-          name: payer.name,
-          surname: payer.surname,
-          email: payer.email,
+          name: buyer.name,
+          surname: buyer.surname,
+          email: buyer.email,
         },
         notification_url: `${BASE_URL}/mercadopago/webhook`,
         back_urls: {
@@ -92,7 +112,7 @@ export class MercadoPagoService {
           failure: 'https://yourwebsite.com/failure',
           pending: 'https://yourwebsite.com/pending',
         },
-        external_reference: order.uid,
+        external_reference: orderWithItems.uid,
       },
     });
 

@@ -1,13 +1,17 @@
 export class OrderService {
-  constructor(orderRepository, productRepository, paymentService) {
+  constructor(orderRepository, paymentService) {
     this.orderRepository = orderRepository;
-    this.productRepository = productRepository;
     this.paymentService = paymentService;
   }
 
   async create(dto) {
     const order = await this.orderRepository.create(dto);
 
-    return await this.paymentService.createOrder(dto.user, order);
+    const orderWithItems = {
+      ...order,
+      items: dto.items,
+    };
+
+    return await this.paymentService.createOrder(dto.user, orderWithItems);
   }
 }
