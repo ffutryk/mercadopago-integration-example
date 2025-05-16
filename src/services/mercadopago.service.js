@@ -1,5 +1,10 @@
 import crypto from 'crypto';
-import { MERCADOPAGO_AUTHENTICITY_SECRET } from '../config/secrets.js';
+import {
+  MERCADOPAGO_AUTHENTICITY_SECRET,
+  BASE_URL,
+} from '../config/secrets.js';
+import { Preference } from 'mercadopago';
+import { mercadoPagoClient } from '../config/mercadopago.js';
 
 export class MercadoPagoService {
   async validateRequestOrigin(req) {
@@ -59,5 +64,29 @@ export class MercadoPagoService {
   async handlePaymentUpdated(data) {
     // Business logic for when a payment is updated
     console.log(data);
+  }
+
+  async createOrder(payer, items) {
+    const preference = new Preference(mercadoPagoClient);
+
+    const response = await preference.create({
+      body: {
+        items,
+        payer: {
+          name: payer.name,
+          surname: payer.surname,
+          email: payer.email,
+        },
+        notification_url: `${BASE_URL}/mercadopago/webhook`,
+        back_urls: {
+          // Redirect URLs after payment
+          success: 'https://yourwebsite.com/success',
+          failure: 'https://yourwebsite.com/failure',
+          pending: 'https://yourwebsite.com/pending',
+        },
+      },
+    });
+
+    return response;
   }
 }
