@@ -24,14 +24,6 @@ export class PrismaOrderRepository {
           },
         },
       },
-      include: {
-        items: {
-          select: {
-            product: true,
-            quantity: true,
-          },
-        },
-      },
     });
   }
 
