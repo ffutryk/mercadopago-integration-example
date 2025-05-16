@@ -142,3 +142,14 @@ export class NoTokenProvidedError extends HttpError {
     super(401, messages);
   }
 }
+
+export class InvalidItemArrayError extends HttpError {
+  constructor() {
+    const messages = {
+      en: 'The array of items is invalid',
+      es: 'La lista de productos es inválida',
+    };
+
+    super(400, messages);
+  }
+}
