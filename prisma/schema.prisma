@@ -45,13 +45,13 @@ model Product {
 model Order {
   uid          String @id @default(cuid())
   userUid      String
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user    User        @relation(fields: [userUid], references: [uid])
   items   OrderItem[]
-  payment Payment[]
 
   @@map("orders")
 }
@@ -66,19 +66,6 @@ model OrderItem {
 
   @@unique([orderUid, productUid])
   @@map("order_items")
-}
-
-model Payment {
-  id       String @id
-  orderUid String @map("order_uid")
-  status PaymentStatus @default(PENDING)
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  order Order @relation(fields: [orderUid], references: [uid])
-
-  @@map("payments")
 }
 
 enum PaymentStatus {
