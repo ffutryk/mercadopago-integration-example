@@ -3,10 +3,14 @@ import {
   MERCADOPAGO_AUTHENTICITY_SECRET,
   BASE_URL,
 } from '../config/secrets.js';
-import { Preference } from 'mercadopago';
+import { Preference, Payment } from 'mercadopago';
 import { mercadoPagoClient } from '../config/mercadopago.js';
 
 export class MercadoPagoService {
+  constructor(orderRepository) {
+    this.orderRepository = orderRepository;
+  }
+
   async validateRequestOrigin(req) {
     const xSignature = req.headers['x-signature'];
     const xRequestId = req.headers['x-request-id'];
@@ -46,10 +50,8 @@ export class MercadoPagoService {
   async handleEvent(event) {
     switch (event.action) {
       case 'payment.created':
-        await this.handlePaymentCreated(event);
+        await this.handlePaymentCreated(event.data);
         break;
-      case 'payment.updated':
-        await this.handlePaymentUpdated(event);
         break;
       default:
         console.warn(`Unhandled MercadoPago event: ${event.action}`);
@@ -57,21 +59,27 @@ export class MercadoPagoService {
   }
 
   async handlePaymentCreated(data) {
-    // Business logic for when a payment is created
-    console.log(data);
+    const payment = await new Payment(mercadoPagoClient).get({ id: data.id });
+
+    if (payment.status === 'approved') {
+      await this.orderRepository.update(payment.external_reference, {
+        paymentStatus: 'APPROVED',
+      });
+    }
   }
 
-  async handlePaymentUpdated(data) {
-    // Business logic for when a payment is updated
-    console.log(data);
-  }
-
-  async createOrder(payer, items) {
+  async createOrder(payer, order) {
     const preference = new Preference(mercadoPagoClient);
 
     const response = await preference.create({
       body: {
-        items,
+        items: order.items.map(({ quantity, product }) => ({
+          quantity,
+          id: product.uid,
+          title: product.name,
+          description: product.description,
+          unit_price: Number(product.unitPrice),
+        })),
         payer: {
           name: payer.name,
           surname: payer.surname,
@@ -84,6 +92,7 @@ export class MercadoPagoService {
           failure: 'https://yourwebsite.com/failure',
           pending: 'https://yourwebsite.com/pending',
         },
+        external_reference: order.uid,
       },
     });
 
