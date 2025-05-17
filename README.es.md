@@ -6,7 +6,7 @@
 
 Un ejemplo de integración con MercadoPago con fines educativos — recibir y manejar notificaciones de pago.
 
-> \[!IMPORTANTE]
+> [!IMPORTANT]
 > Este proyecto es solo para fines demostrativos y de aprendizaje. **No usar en producción** sin antes adaptar la seguridad y el manejo de errores a tus necesidades.
 
 ## Estructura de Carpetas
@@ -97,7 +97,7 @@ pnpm dev
 ngrok http 3000
 ```
 
-> \[!IMPORTANTE]
+> [!IMPORTANT]
 > No te olvides de actualizar tanto la URL del webhook en MercadoPago como la variable BASE_URL en el archivo `.env` con la URL pública que te proporciona ngrok.
 
 ---
