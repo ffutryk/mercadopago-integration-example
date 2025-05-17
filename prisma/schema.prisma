@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  uid      String @id @default(cuid())
+  email    String @unique
+  password String
+  name     String
+  surname  String
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  orders Order[]
+
+  @@map("users")
+}
+
+model Product {
+  uid         String  @id @default(cuid())
+  name        String
+  description String
+  unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  items OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  uid          String @id @default(cuid())
+  userUid      String
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user    User        @relation(fields: [userUid], references: [uid])
+  items   OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  orderUid   String @map("order_uid")
+  productUid String
+  quantity   Int
+
+  order   Order   @relation(fields: [orderUid], references: [uid])
+  product Product @relation(fields: [productUid], references: [uid])
+
+  @@unique([orderUid, productUid])
+  @@map("order_items")
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
